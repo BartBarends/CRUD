@@ -1,7 +1,10 @@
 package nl.han.aim.oosevt.lamport.services;
 
-import nl.han.aim.oosevt.lamport.controllers.employees.dto.EmployeeDTO;
+import nl.han.aim.oosevt.lamport.controllers.employees.dto.CreateEmployeeRequestRequestDTO;
+import nl.han.aim.oosevt.lamport.controllers.employees.dto.EmployeeResponseDTO;
+import nl.han.aim.oosevt.lamport.controllers.employees.dto.UpdateEmployeeRequestRequestDTO;
 import nl.han.aim.oosevt.lamport.data.employee.EmployeeDAO;
+import nl.han.aim.oosevt.lamport.data.entities.Employee;
 import nl.han.aim.oosevt.lamport.exceptions.InvalidDtoException;
 import nl.han.aim.oosevt.lamport.exceptions.NotFoundException;
 import nl.han.aim.oosevt.lamport.services.employee.EmployeeServiceImpl;
@@ -16,31 +19,34 @@ import java.util.List;
 public class EmployeeServiceTests {
 
     private EmployeeServiceImpl employeeService;
+    
+    private final String updateFirstName = "Bart1";
+    private final String updateLastName = "Barends1";
+    private final UpdateEmployeeRequestRequestDTO updateDTO = new UpdateEmployeeRequestRequestDTO(1, updateFirstName, updateLastName);
+    private final UpdateEmployeeRequestRequestDTO wrongUpdateDTO = new UpdateEmployeeRequestRequestDTO(3, "Bart1", "Barends1");
+    private final CreateEmployeeRequestRequestDTO createDTO = new CreateEmployeeRequestRequestDTO("Test", "Test1");
 
-    private final EmployeeDTO updateDTO = new EmployeeDTO(1, "Bart1", "Barends1");
-    private final EmployeeDTO wrongUpdateDTO = new EmployeeDTO(3, "Bart1", "Barends1");
-    private final EmployeeDTO createDTO = new EmployeeDTO(0, "Test", "Test1");
-
-    private final ArrayList<EmployeeDTO> employees = new ArrayList<>();
+    private final ArrayList<Employee> employees = new ArrayList<>();
 
     @BeforeEach
     public void setup() {
         final EmployeeDAO employeeDAO = Mockito.mock(EmployeeDAO.class);
-        employees.add(new EmployeeDTO(1, "Bart", "Barends"));
-        employees.add(new EmployeeDTO(2, "Ard-Jan", "van Etten"));
+
+        employees.add(new Employee(1, "Bart", "Barends"));
+        employees.add(new Employee(2, "Ard-Jan", "van Etten"));
+
         Mockito.when(employeeDAO.getEmployees()).thenReturn(employees);
-        Mockito.when(employeeDAO.getEmployee(1)).thenReturn(employees.get(0));
+        Mockito.doAnswer(invocation -> {
+            employees.remove(employees.stream().filter(x -> x.getId() == 1).findFirst().get());
+            employees.add(new Employee(1, updateFirstName, updateLastName));
+            return null;
+        }).when(employeeDAO).updateEmployee(1, updateFirstName, updateLastName);
+        Mockito.when(employeeDAO.getEmployee(1)).thenReturn(employees.stream().filter(x -> x.getId() == 1).findFirst().get());
         Mockito.when(employeeDAO.getEmployee(3)).thenReturn(null);
         Mockito.doAnswer(invocation -> {
-            employees.get(0).setFirstName("Bart1");
-            employees.get(0).setLastName("Barends1");
+            employees.add(new Employee(3, "Test", "Test1"));
             return null;
-        }).when(employeeDAO).updateEmployee(updateDTO);
-
-        Mockito.doAnswer(invocation -> {
-            employees.add(createDTO);
-            return null;
-        }).when(employeeDAO).createEmployee(createDTO);
+        }).when(employeeDAO).createEmployee("Test", "Test1");
 
         Mockito.doAnswer(invocation -> {
             employees.remove(0);
@@ -52,7 +58,7 @@ public class EmployeeServiceTests {
 
     @Test
     public void getAllReturnsAllEmployees() {
-        final List<EmployeeDTO> employeeDTOS = employeeService.getEmployees();
+        final List<EmployeeResponseDTO> employeeDTOS = employeeService.getEmployees();
 
         Assertions.assertEquals(2, employeeDTOS.size());
         Assertions.assertEquals("Bart", employeeDTOS.get(0).getFirstName());
@@ -60,7 +66,7 @@ public class EmployeeServiceTests {
 
     @Test
     public void getByIdReturnsEmployeeWithId() {
-        final EmployeeDTO employeeDTO = employeeService.getEmployee(1);
+        final EmployeeResponseDTO employeeDTO = employeeService.getEmployee(1);
 
         Assertions.assertEquals(1, employeeDTO.getId());
         Assertions.assertEquals("Bart", employeeDTO.getFirstName());
@@ -75,16 +81,16 @@ public class EmployeeServiceTests {
     public void updateEmployeeUpdatesAllFields() {
         employeeService.updateEmployee(updateDTO);
 
-        final EmployeeDTO updated = employeeService.getEmployee(1);
+        final Employee updated = employees.stream().filter(x -> x.getId() == 1).findFirst().get();
 
-        Assertions.assertEquals("Bart1", updated.getFirstName());
-        Assertions.assertEquals("Barends1", updated.getLastName());
+        Assertions.assertEquals(updateFirstName, updated.getFirstName());
+        Assertions.assertEquals(updateLastName, updated.getLastName());
     }
 
     @Test
     public void updateEmployeeThrowsErrorWithoutValidDTO() {
-        Assertions.assertThrows(InvalidDtoException.class, () -> employeeService.updateEmployee(new EmployeeDTO(1, "", "Test")));
-        Assertions.assertThrows(InvalidDtoException.class, () -> employeeService.updateEmployee(new EmployeeDTO(1, "Test", "")));
+        Assertions.assertThrows(InvalidDtoException.class, () -> employeeService.updateEmployee(new UpdateEmployeeRequestRequestDTO(1, "", "Test")));
+        Assertions.assertThrows(InvalidDtoException.class, () -> employeeService.updateEmployee(new UpdateEmployeeRequestRequestDTO(1, "Test", "")));
     }
 
     @Test
@@ -96,7 +102,7 @@ public class EmployeeServiceTests {
     public void createEmployeeAddsEmployeeWithValidId() {
         employeeService.createEmployee(createDTO);
 
-        final List<EmployeeDTO> employeeDTOS = employeeService.getEmployees();
+        final List<EmployeeResponseDTO> employeeDTOS = employeeService.getEmployees();
 
         Assertions.assertEquals(3, employeeDTOS.size());
         Assertions.assertEquals("Test", employeeDTOS.get(2).getFirstName());
@@ -104,15 +110,15 @@ public class EmployeeServiceTests {
 
     @Test
     public void createEmployeeThrowsErrorWithoutValidDTO() {
-        Assertions.assertThrows(InvalidDtoException.class, () -> employeeService.createEmployee(new EmployeeDTO(0, "", "Test")));
-        Assertions.assertThrows(InvalidDtoException.class, () -> employeeService.createEmployee(new EmployeeDTO(0, "Test", "")));
+        Assertions.assertThrows(InvalidDtoException.class, () -> employeeService.createEmployee(new CreateEmployeeRequestRequestDTO("", "Test")));
+        Assertions.assertThrows(InvalidDtoException.class, () -> employeeService.createEmployee(new CreateEmployeeRequestRequestDTO("Test", "")));
     }
 
     @Test
     public void deleteEmployeeDeletesEmployeeWithValidId() {
         employeeService.deleteEmployee(1);
 
-        final List<EmployeeDTO> employeeDTOS = employeeService.getEmployees();
+        final List<EmployeeResponseDTO> employeeDTOS = employeeService.getEmployees();
 
         Assertions.assertEquals(1, employeeDTOS.size());
     }

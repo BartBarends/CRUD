@@ -1,6 +1,8 @@
 package nl.han.aim.oosevt.lamport.controllers.employees;
 
-import nl.han.aim.oosevt.lamport.controllers.employees.dto.EmployeeDTO;
+import nl.han.aim.oosevt.lamport.controllers.employees.dto.CreateEmployeeRequestRequestDTO;
+import nl.han.aim.oosevt.lamport.controllers.employees.dto.EmployeeResponseDTO;
+import nl.han.aim.oosevt.lamport.controllers.employees.dto.UpdateEmployeeRequestRequestDTO;
 import nl.han.aim.oosevt.lamport.exceptions.InvalidDtoException;
 import nl.han.aim.oosevt.lamport.services.employee.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,7 @@ public class EmployeeController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<EmployeeDTO>> getEmployees() {
+    public ResponseEntity<List<EmployeeResponseDTO>> getEmployees() {
         return new ResponseEntity<>(
                 employeeService.getEmployees(),
                 HttpStatus.OK
@@ -31,7 +33,7 @@ public class EmployeeController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<EmployeeDTO> getEmployee(@PathVariable("id") int id) {
+    public ResponseEntity<EmployeeResponseDTO> getEmployee(@PathVariable("id") int id) {
         return new ResponseEntity<>(
                 employeeService.getEmployee(id),
                 HttpStatus.OK
@@ -44,12 +46,12 @@ public class EmployeeController {
     }
 
     @PutMapping()
-    public void updateEmployee(@RequestBody EmployeeDTO employeeDTO) {
+    public void updateEmployee(@RequestBody UpdateEmployeeRequestRequestDTO employeeDTO) {
         employeeService.updateEmployee(employeeDTO);
     }
 
     @PostMapping()
-    public void createEmployee(@RequestBody EmployeeDTO employeeDTO) {
+    public void createEmployee(@RequestBody CreateEmployeeRequestRequestDTO employeeDTO) {
         employeeService.createEmployee(employeeDTO);
     }
 

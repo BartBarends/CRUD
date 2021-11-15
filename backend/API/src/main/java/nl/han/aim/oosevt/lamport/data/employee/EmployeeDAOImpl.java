@@ -1,6 +1,6 @@
 package nl.han.aim.oosevt.lamport.data.employee;
 
-import nl.han.aim.oosevt.lamport.controllers.employees.dto.EmployeeDTO;
+import nl.han.aim.oosevt.lamport.data.entities.Employee;
 import nl.han.aim.oosevt.lamport.data.util.DatabaseProperties;
 import org.springframework.stereotype.Component;
 
@@ -12,13 +12,13 @@ import java.util.List;
 public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
-    public List<EmployeeDTO> getEmployees() {
-        List<EmployeeDTO> items = new ArrayList<>();
+    public List<Employee> getEmployees() {
+        List<Employee> items = new ArrayList<>();
         try (Connection connection = DriverManager.getConnection(DatabaseProperties.connectionString());
             PreparedStatement statement = connection.prepareStatement("CALL getEmployees");
             ResultSet resultSet = statement.executeQuery()) {
             while(resultSet.next()) {
-                EmployeeDTO item = new EmployeeDTO(
+                Employee item = new Employee(
                         resultSet.getInt("id"),
                         resultSet.getString("firstName"),
                         resultSet.getString("lastName"));
@@ -31,14 +31,14 @@ public class EmployeeDAOImpl implements EmployeeDAO {
     }
 
     @Override
-    public EmployeeDTO getEmployee(int id) {
+    public Employee getEmployee(int id) {
         try (Connection connection = DriverManager.getConnection(DatabaseProperties.connectionString());
              PreparedStatement statement = connection.prepareStatement("CALL getEmployee(?)")) {
             statement.setInt(1, id);
 
             ResultSet resultSet = statement.executeQuery();
             if(resultSet.next()) {
-                return new EmployeeDTO(
+                return new Employee(
                         resultSet.getInt("id"),
                         resultSet.getString("firstName"),
                         resultSet.getString("lastName"));
@@ -61,12 +61,12 @@ public class EmployeeDAOImpl implements EmployeeDAO {
     }
 
     @Override
-    public void updateEmployee(EmployeeDTO employeeDTO) {
+    public void updateEmployee(int id, String firstName, String lastName) {
         try (Connection connection = DriverManager.getConnection(DatabaseProperties.connectionString());
              PreparedStatement statement = connection.prepareStatement("CALL updateEmployee(?,?,?)")) {
-            statement.setInt(1, employeeDTO.getId());
-            statement.setString(2, employeeDTO.getFirstName());
-            statement.setString(3, employeeDTO.getLastName());
+            statement.setInt(1, id);
+            statement.setString(2, firstName);
+            statement.setString(3, lastName);
             statement.executeUpdate();
         } catch(SQLException e) {
             e.printStackTrace();
@@ -74,11 +74,11 @@ public class EmployeeDAOImpl implements EmployeeDAO {
     }
 
     @Override
-    public void createEmployee(EmployeeDTO employeeDTO) {
+    public void createEmployee(String firstName, String lastName) {
         try (Connection connection = DriverManager.getConnection(DatabaseProperties.connectionString());
              PreparedStatement statement = connection.prepareStatement("CALL createEmployee(?,?)")) {
-            statement.setString(1, employeeDTO.getFirstName());
-            statement.setString(2, employeeDTO.getLastName());
+            statement.setString(1, firstName);
+            statement.setString(2, lastName);
             statement.executeUpdate();
         } catch(SQLException e) {
             e.printStackTrace();
