@@ -36,7 +36,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new NotFoundException();
         }
 
-        employeeDAO.updateEmployee(employeeDTO.getId(), employeeDTO.getFirstName(), employeeDTO.getLastName(), employeeDTO.getFunctions());
+        employeeDAO.updateEmployee(employeeDTO.getId(), employeeDTO.getFirstName(), employeeDTO.getLastName(), new ArrayList<>());
     }
 
     @Override
