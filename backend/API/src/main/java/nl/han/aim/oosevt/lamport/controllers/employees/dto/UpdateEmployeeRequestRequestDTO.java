@@ -2,15 +2,19 @@ package nl.han.aim.oosevt.lamport.controllers.employees.dto;
 
 import nl.han.aim.oosevt.lamport.shared.RequestDTO;
 
+import java.util.ArrayList;
+
 public class UpdateEmployeeRequestRequestDTO extends RequestDTO {
     private int id;
     private String firstName;
     private String lastName;
+    private ArrayList<Integer> functions;
 
-    public UpdateEmployeeRequestRequestDTO(int id, String firstName, String lastName) {
+    public UpdateEmployeeRequestRequestDTO(int id, String firstName, String lastName, ArrayList<Integer> functions) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.functions = functions;
     }
 
     public UpdateEmployeeRequestRequestDTO() {
@@ -38,6 +42,14 @@ public class UpdateEmployeeRequestRequestDTO extends RequestDTO {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public ArrayList<Integer> getFunctions() {
+        return functions;
+    }
+
+    public void setFunctions(ArrayList<Integer> functions) {
+        this.functions = functions;
     }
 
     @Override

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class EmployeeDAOImpl implements EmployeeDAO {
@@ -61,12 +62,13 @@ public class EmployeeDAOImpl implements EmployeeDAO {
     }
 
     @Override
-    public void updateEmployee(int id, String firstName, String lastName) {
+    public void updateEmployee(int id, String firstName, String lastName, ArrayList<Integer> functions) {
         try (Connection connection = DriverManager.getConnection(DatabaseProperties.connectionString());
-             PreparedStatement statement = connection.prepareStatement("CALL updateEmployee(?,?,?)")) {
+             PreparedStatement statement = connection.prepareStatement("CALL updateEmployee(?,?,?,?)")) {
             statement.setInt(1, id);
             statement.setString(2, firstName);
             statement.setString(3, lastName);
+            statement.setString(4, functions.stream().map(Object::toString).collect(Collectors.joining(",")));
             statement.executeUpdate();
         } catch(SQLException e) {
             e.printStackTrace();

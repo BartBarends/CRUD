@@ -9,6 +9,7 @@ import nl.han.aim.oosevt.lamport.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,7 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new NotFoundException();
         }
 
-        employeeDAO.updateEmployee(employeeDTO.getId(), employeeDTO.getFirstName(), employeeDTO.getLastName());
+        employeeDAO.updateEmployee(employeeDTO.getId(), employeeDTO.getFirstName(), employeeDTO.getLastName(), employeeDTO.getFunctions());
     }
 
     @Override
@@ -54,15 +55,28 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new NotFoundException();
         }
 
-        return new EmployeeResponseDTO().fromData(employee);
+        final EmployeeResponseDTO employeeResponseDTO = new EmployeeResponseDTO().fromData(employee);
+        final ArrayList<Integer> functions = new ArrayList<>();
+        functions.add(1);
+        functions.add(3);
+
+        employeeResponseDTO.setFunctions(functions);
+
+        return employeeResponseDTO;
     }
 
     @Override
     public List<EmployeeResponseDTO> getEmployees() {
-        return employeeDAO
+        final ArrayList<Integer> functions = new ArrayList<>();
+        functions.add(1);
+        functions.add(3);
+
+        final List<EmployeeResponseDTO> employeeResponseDTOS = employeeDAO
                 .getEmployees()
                 .stream()
                 .map(x -> new EmployeeResponseDTO().fromData(x))
                 .collect(Collectors.toList());
+        employeeResponseDTOS.forEach(x -> x.setFunctions(functions));
+        return employeeResponseDTOS;
     }
 }

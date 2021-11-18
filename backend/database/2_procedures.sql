@@ -22,8 +22,11 @@ END //
 CREATE PROCEDURE updateEmployee(
     IN param_id INT,
     IN param_firstName VARCHAR(100),
-    IN param_lastName VARCHAR(100))
+    IN param_lastName VARCHAR(100),
+    IN param_functions VARCHAR(500))
 BEGIN
+    CREATE TEMPORARY TABLE updateEmployeeFunctions(function_id INT);
+    INSERT INTO updateEmployeeFunctions(function_id) VALUES ('1,2,3,4,5');
 	UPDATE employees SET firstName = param_firstName, lastName = param_lastName WHERE Id = param_id;
 END //
 
